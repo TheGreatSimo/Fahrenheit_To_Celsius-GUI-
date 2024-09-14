@@ -1,44 +1,64 @@
-use std::io;
+use eframe::egui;
 
-fn main() {
-    loop {
-        println!("To convert Fahrenheit to Celsius enter 1");
-        println!("To convert Celsius to Fahrenheit enter 2");
-        println!("Enter your choice:");
+fn main() -> Result<(), eframe::Error> {
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "My app",
+        options,
+        Box::new(|_cc| Ok(Box::new(MyApp::default()))),
+    )
+}
 
-        let choice = read_input().trim().parse::<i32>();
-        match choice {
-            Ok(1) => {
-                println!("Enter Fahrenheit to convert to Celsius:");
-                let fahrenheit = read_input().trim().parse::<f64>().expect("Invalid Fahrenheit input");
-                let celsius = fahrenheit_to_celsius(fahrenheit);
-                println!("{} Fahrenheit is {:.2} Celsius", fahrenheit, celsius);
-            },
-            Ok(2) => {
-                println!("Enter Celsius to convert to Fahrenheit:");
-                let celsius = read_input().trim().parse::<f64>().expect("Invalid Celsius input");
-                let fahrenheit = celsius_to_fahrenheit(celsius);
-                println!("{} Celsius is {:.2} Fahrenheit", celsius, fahrenheit);
-            },
-            _ => {
-                println!("Invalid choice! Please enter 1 or 2.");
-                continue;  
-            },
-        }
-        break;  
+#[derive(Default)]
+struct MyApp{
+//    text_fahrenheit_to_celsius : String,
+  //  text_celsius_fahrenheit : String,
+    text_fahrenheit : String,
+    result_of_fahrenheit: f64,
+    show_fahrenheit_result_heading : bool,
+    text_celsius : String,
+    result_of_celsius: f64,
+    show_celsius_result_heading : bool,
+
+}
+
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.collapsing("Convert Fahrenheit to Celsius", |ui| {
+                ui.label("Enter Fahrenheit value");
+                ui.text_edit_singleline(& mut self.text_fahrenheit);
+                if ui.button("convert").clicked() {
+                    let mut text_fahrenheit_input = self.text_fahrenheit.trim().parse().expect("something went wrong !!");
+                    self.result_of_fahrenheit = convert_fahrenheit_to_celsius(text_fahrenheit_input);
+                    println!("haja {}",self.result_of_fahrenheit);
+                    self.show_fahrenheit_result_heading= true
+                }
+                if self.show_fahrenheit_result_heading {
+                    ui.heading(self.result_of_fahrenheit.to_string());
+                }
+            });
+            ui.collapsing("Convert Celsius to Fahrenheit", |ui| {
+                ui.label("Enter Celsius value");
+                ui.text_edit_singleline(& mut self.text_celsius);
+                if ui.button("convert").clicked() {
+                    let mut text_celsius_input = self.text_celsius.trim().parse().expect("Weird Stuff happens here");
+                    self.result_of_celsius = convert_celsius_fahrenheit(text_celsius_input);
+                    self.show_celsius_result_heading = true
+                }
+                if self.show_celsius_result_heading {
+                    ui.heading(self.result_of_celsius.to_string());
+                }
+            });
+        });
     }
 }
 
-fn read_input() -> String {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read input");
-    input
+
+fn convert_fahrenheit_to_celsius(x :f64) -> f64 {
+    (x as f64 - 32.0) * 5.0 / 9.0
 }
 
-fn fahrenheit_to_celsius(x: f64) -> f64 {
-    (x - 32.0) * 5.0 / 9.0
-}
-
-fn celsius_to_fahrenheit(x: f64) -> f64 {
-    (x * 9.0 / 5.0) + 32.0
+fn convert_celsius_fahrenheit(x:f64) -> f64 {
+    (x as f64 * 9.0 / 5.0) + 32.0
 }
